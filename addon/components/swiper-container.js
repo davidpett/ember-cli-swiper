@@ -88,6 +88,9 @@ export default Ember.Component.extend({
     if (this.get('autoplayDisableOnInteraction')) {
       options.autoplayDisableOnInteraction = this.get('autoplayDisableOnInteraction');
     }
+    if (this.get('effect')) {
+      options.effect = this.get('effect');
+    }
 
     options.onSlideChangeEnd = this.slideChanged.bind(this);
 
