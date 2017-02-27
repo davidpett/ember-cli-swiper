@@ -91,6 +91,15 @@ export default Ember.Component.extend({
     if (this.get('effect')) {
       options.effect = this.get('effect');
     }
+    if (this.get('mousewheelControl')) {
+      options.mousewheelControl = this.get('mousewheelControl');
+    }
+    if (this.get('mousewheelForceToAxis')) {
+      options.mousewheelForceToAxis = this.get('mousewheelForceToAxis');
+    }
+    if (this.get('keyboardControl')) {
+      options.keyboardControl = this.get('keyboardControl');
+    }
 
     options.onSlideChangeEnd = this.slideChanged.bind(this);
 
