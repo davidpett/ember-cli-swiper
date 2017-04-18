@@ -6,7 +6,7 @@ export default Ember.Component.extend({
   classNames: ['swiper-container'],
   swiper: false,
 
-  swiperOptions: Ember.computed('pagination', 'loop', 'vertical', 'onlyExternal', function() {
+  swiperOptions: Ember.computed('speed', 'pagination', 'loop', 'vertical', 'onlyExternal', function() {
     let options = {};
 
     if (this.get('pagination')) {
@@ -20,6 +20,9 @@ export default Ember.Component.extend({
 
     if (this.get('prevButton')) {
       options.prevButton = this.get('prevButton');
+    }
+    if (this.get('speed')) {
+      options.speed = this.get('speed');
     }
 
     if (this.get('navigation')) {
