@@ -1,16 +1,35 @@
+/* globals Swiper */
+
 import Ember from 'ember';
 import layout from '../templates/components/swiper-container';
 
-export default Ember.Component.extend({
+const { Component, computed, observer, on, run, $ } = Ember;
+
+const swiperParameters = [
+  // Keyboard / Mousewheel
+  'keyboardControl',
+  'mousewheelControl',
+  'mousewheelForceToAxis',
+  'mousewheelInvert',
+  'mousewheelReleaseOnEdges'
+];
+
+export default Component.extend({
   layout,
   classNames: ['swiper-container'],
   swiper: false,
 
-  swiperOptions: Ember.computed('speed', 'pagination', 'loop', 'vertical', 'onlyExternal', function() {
+  swiperOptions: computed('pagination', 'loop', 'vertical', 'onlyExternal', 'effect', ...swiperParameters, function() {
     let options = {};
 
+    swiperParameters.forEach((parameter) => {
+      if (this.get(parameter)) {
+        options[parameter] = parameter;
+      }
+    });
+
     if (this.get('pagination')) {
-      options.pagination = `#${this.get('elementId')} .swiper-pagination`;
+      options.pagination = `#${this.get('elementId')} > .swiper-pagination`;
       options.paginationClickable = true;
     }
 
@@ -38,7 +57,7 @@ export default Ember.Component.extend({
       options.initialSlide = this.get('initialSlide');
     }
 
-    // disables swipping
+    // Disables swiping
     if (this.get('followFinger')) {
       options.followFinger = false;
     }
@@ -52,8 +71,16 @@ export default Ember.Component.extend({
       options.direction = 'vertical';
     }
 
+    if (this.get('slidesPerGroup')) {
+      options.slidesPerGroup = this.get('slidesPerGroup');
+    }
+
     if (this.get('slidesPerView')) {
       options.slidesPerView = this.get('slidesPerView');
+    }
+
+    if (this.get('slidesPerColumn')) {
+      options.slidesPerColumn = this.get('slidesPerColumn');
     }
 
     if (this.get('spaceBetween')) {
@@ -66,6 +93,10 @@ export default Ember.Component.extend({
 
     if (this.get('freeMode')) {
       options.freeMode = true;
+    }
+
+    if (this.get('speed')) {
+      options.speed = this.get('speed');
     }
 
     if (this.get('freeModeSticky')) {
@@ -104,13 +135,30 @@ export default Ember.Component.extend({
       options.keyboardControl = this.get('keyboardControl');
     }
 
+    // basic support for 'effect' API
+    let effect = this.get('effect');
+    if (effect && effect !== 'slide') {
+      options.effect = this.get('effect');
+
+      // look for effect configurations if an effect other than the default
+      // 'slide' effect is given
+      let effectConfigs = this.getProperties('fade', 'cube', 'overflow', 'flip');
+
+      // add available effect configurations to options
+      Object.keys(effectConfigs).forEach((c) => {
+        if (effectConfigs[c]) {
+          options[c] = effectConfigs[c];
+        }
+      });
+    }
+
     options.onSlideChangeEnd = this.slideChanged.bind(this);
 
     return options;
   }),
 
-  updateTriggered: Ember.observer('updateFor', function() {
-    Ember.run.once(this, this.get('swiper').update);
+  updateTriggered: observer('updateFor', function() {
+    run.once(this, this.get('swiper').update);
   }),
 
   forceUpdate(updateTranslate) {
@@ -119,7 +167,7 @@ export default Ember.Component.extend({
   },
 
   slideChanged(swiper) {
-    let index = this.get('loop') ? Ember.$(swiper.slides).filter('.swiper-slide-active').attr('data-swiper-slide-index') : swiper.activeIndex;
+    let index = this.get('loop') ? $(swiper.slides).filter('.swiper-slide-active').attr('data-swiper-slide-index') : swiper.activeIndex;
     this.set('currentSlideInternal', index);
     this.set('currentSlide', index);
 
@@ -128,14 +176,14 @@ export default Ember.Component.extend({
     }
   },
 
-  currentSlideModified: Ember.observer('currentSlide', function() {
-    Ember.run.later(this, () => {
+  currentSlideModified: observer('currentSlide', function() {
+    run.later(this, () => {
       if (this.get('currentSlide') !== this.get('currentSlideInternal')) {
         let index = this.get('currentSlide');
 
         if (this.get('loop')) {
           let swiper = this.get('swiper');
-          index = Ember.$(swiper.slides).filter(`[data-swiper-slide-index=${this.get('currentSlide')}]`).prevAll().length;
+          index = $(swiper.slides).filter(`[data-swiper-slide-index=${this.get('currentSlide')}]`).prevAll().length;
         }
 
         this.get('swiper').slideTo(index);
@@ -144,9 +192,13 @@ export default Ember.Component.extend({
     });
   }),
 
-  initSwiper: Ember.on('didInsertElement', function() {
-    this.set('swiper', new Swiper(`#${this.get('elementId')}`, this.get('swiperOptions')));
-    this.set('registerAs', this);
+  initSwiper: on('didInsertElement', function() {
+    run.scheduleOnce('afterRender', this, function() {
+      this.set('swiper', new Swiper(`#${this.get('elementId')}`, this.get('swiperOptions')));
+      this.set('registerAs', this);
+      if (this.get('afterSwiperInit')) {
+        this.sendAction('afterSwiperInit', this);
+      }
+    });
   })
-
 });
