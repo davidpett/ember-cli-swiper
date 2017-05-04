@@ -152,6 +152,7 @@ export default Component.extend({
       });
     }
 
+    options.onSlideChangeStart = this.slideChangeStart.bind(this);
     options.onSlideChangeEnd = this.slideChanged.bind(this);
 
     return options;
@@ -164,6 +165,12 @@ export default Component.extend({
   forceUpdate(updateTranslate) {
     this.get('swiper').update(updateTranslate === undefined ? false : updateTranslate);
     this.get('swiper').slideTo(this.get('currentSlide'));
+  },
+
+  slideChangeStart(swiper) {
+    if (this.get('onChangeStart')) {
+      this.sendAction('onChangeStart');
+    }
   },
 
   slideChanged(swiper) {
