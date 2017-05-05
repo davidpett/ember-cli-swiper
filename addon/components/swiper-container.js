@@ -152,8 +152,8 @@ export default Component.extend({
       });
     }
 
-    options.onSlideChangeStart = this.slideChangeStart.bind(this);
-    options.onSlideChangeEnd = this.slideChanged.bind(this);
+    // options.onSlideChangeStart = this.slideChangeStart.bind(this);
+    options.onSlideChangeStart = this.slideChanged.bind(this);
 
     return options;
   }),
